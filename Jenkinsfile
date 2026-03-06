@@ -1,0 +1,66 @@
+pipeline {
+
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/mehar-pa-45/bus-booking-ui.git']])
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                echo 'Validating Maven project'
+                sh 'mvn validate'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                echo 'Compiling project'
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running unit tests'
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo 'Packaging application'
+                sh 'mvn package'
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                echo 'Archiving WAR file'
+                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            }
+        }
+
+    }
+
+    post {
+
+        success {
+            echo 'Build Successful'
+        }
+
+        failure {
+            echo 'Build Failed'
+        }
+
+        always {
+            echo 'Pipeline Completed'
+        }
+
+    }
+
+}
