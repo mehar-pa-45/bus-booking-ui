@@ -5,13 +5,38 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/mehar-pa-45/bus-booking-ui.git']])
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'github-cred',
+                        url: 'https://github.com/mehar-pa-45/bus-booking-ui.git'
+                    ]]
+                )
             }
         }
 
-        stage('Build WAR') {
+        stage('Validate') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn validate'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package WAR') {
+            steps {
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -24,10 +49,14 @@ pipeline {
                 echo "Copying new WAR file"
                 cp target/bus-booking.war /opt/tomcat/webapps/
 
-                echo "Deployment completed"
+                echo "Restarting Tomcat"
+                /opt/tomcat/bin/shutdown.sh || true
+                sleep 5
+                /opt/tomcat/bin/startup.sh
                 '''
             }
         }
+
     }
 
     post {
