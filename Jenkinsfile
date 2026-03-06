@@ -24,11 +24,20 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 sh '''
+                echo "Stopping Tomcat"
+                /opt/tomcat/bin/shutdown.sh || true
+
+                sleep 5
+
                 echo "Removing old deployment"
-                rm -rf /opt/tomcat/webapps/bus-booking*
+                rm -rf /opt/tomcat/webapps/bus-booking
+                rm -f /opt/tomcat/webapps/bus-booking.war
 
                 echo "Copying new WAR"
                 cp target/bus-booking.war /opt/tomcat/webapps/
+
+                echo "Starting Tomcat"
+                /opt/tomcat/bin/startup.sh
                 '''
             }
         }
