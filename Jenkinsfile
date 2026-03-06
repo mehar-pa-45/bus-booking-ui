@@ -1,66 +1,27 @@
 pipeline {
-
     agent any
 
     stages {
 
         stage('Checkout') {
             steps {
-               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/mehar-pa-45/bus-booking-ui.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/mehar-pa-45/bus-booking-ui.git']])
             }
         }
 
-        stage('Validate') {
+        stage('Build WAR') {
             steps {
-                echo 'Validating Maven project'
-                sh 'mvn validate'
-            }
-        }
-
-        stage('Compile') {
-            steps {
-                echo 'Compiling project'
-                sh 'mvn compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running unit tests'
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
-            steps {
-                echo 'Packaging application'
                 sh 'mvn clean package'
             }
         }
 
-        stage('Archive Artifacts') {
+        stage('Deploy to Tomcat') {
             steps {
-                echo 'Archiving WAR file'
-                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+                sh '''
+                cp target/*.war /usr/local/tomcat/webapps/
+                '''
             }
         }
 
     }
-
-    post {
-
-        success {
-            echo 'Build Successful'
-        }
-
-        failure {
-            echo 'Build Failed'
-        }
-
-        always {
-            echo 'Pipeline Completed'
-        }
-
-    }
-
 }
